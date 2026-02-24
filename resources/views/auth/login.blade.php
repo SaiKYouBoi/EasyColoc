@@ -115,11 +115,11 @@
                                 id="email" placeholder="name@company.com" type="email" name="email"
                                 :value="old('email')" required autofocus autocomplete="username" />
                         </div>
-                        <x-input-error :messages="$errors->get('email')" class="mt-2" />
 
+                        <x-input-error :messages="$errors->get('email')" class="mt-2" />
                     </div>
                     <!-- Password Field -->
-                    <div class="flex flex-col gap-1.5 mt-6">
+                    <div class="flex flex-col gap-1.5 mt-4">
                         <div class="flex justify-between items-center ml-1">
                             <label class="text-sm font-semibold text-slate-700 dark:text-slate-300"
                                 for="password">Password</label>
@@ -137,14 +137,14 @@
                                 class="w-full h-11 pl-10 pr-10 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all text-sm"
                                 id="password" placeholder="Enter your password" type="password" name="password"
                                 required autocomplete="current-password" />
-                            <x-input-error :messages="$errors->get('password')" class="mt-2" />
 
                             <button
                                 class="absolute right-3 top-1/2 -translate-y-1/2 mt-4 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors focus:outline-none"
-                                type="submit">
+                                type="button">
                                 <span class="material-symbols-outlined text-[20px]">visibility_off</span>
                             </button>
                         </div>
+                        <x-input-error :messages="$errors->get('password')" class="mt-2" />
                     </div>
                     <!-- Submit Button -->
                     <button
