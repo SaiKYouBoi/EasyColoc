@@ -140,7 +140,7 @@
                             <x-input-error :messages="$errors->get('password')" class="mt-2" />
 
                             <button
-                                class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors focus:outline-none"
+                                class="absolute right-3 top-1/2 -translate-y-1/2 mt-4 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors focus:outline-none"
                                 type="submit">
                                 <span class="material-symbols-outlined text-[20px]">visibility_off</span>
                             </button>
