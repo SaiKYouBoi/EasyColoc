@@ -23,8 +23,7 @@ class CheckBanned
 
                 Auth::logout();
 
-                return redirect()->route('is-banned')
-                    ->with('error', 'Your account has been banned.');
+                return redirect()->route('is-banned');
             }
         }
         return $next($request);
