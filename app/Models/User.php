@@ -26,6 +26,30 @@ class User extends Authenticatable
         'is_banned',
     ];
 
+    public function memberships()
+    {
+        return $this->hasMany(Membership::class);
+    }
+
+    public function colocations()
+    {
+        return $this->belongsToMany(
+            Colocation::class,
+            'memberships'
+        )->withPivot(['role', 'left_at'])
+            ->withTimestamps();
+    }
+
+    public function paidExpenses()
+    {
+        return $this->hasMany(Expense::class, 'payer_id');
+    }
+
+    public function debts()
+    {
+        return $this->hasMany(ExpenseDetail::class, 'debtor_id');
+    }
+
     /**
      * The attributes that should be hidden for serialization.
      *
