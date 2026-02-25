@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\ColocationController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 
@@ -14,9 +16,9 @@ Route::get('/dashboard', function () {
 })->middleware(['auth', 'verified','checkbanned'])->name('dashboard');
 
 Route::middleware(['auth','checkbanned'])->group(function () {
-    Route::get('/', function () {
-        return view('welcome');
-    });
+    Route::get('/', [DashboardController::class, 'dashboard'])->name('userdashboard');
+    Route::get('/user-colocations',  [ColocationController::class, 'colocation'])->name('colocations');
+    Route::post('/user-colocations', [ColocationController::class, 'store'])->name('colocation.create');
 });
 
 Route::middleware('auth')->group(function () {
