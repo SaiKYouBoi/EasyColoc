@@ -12,13 +12,60 @@ class ColocationController extends Controller
 {
     public function colocation()
     {
-        return view('colocation.colocation');
+        $user = Auth::user();
+
+        $colocations = $user->colocations()
+            ->wherePivotNull('left_at')
+            ->withCount([
+                'memberships as active_members_count' => function ($query) {
+                    $query->whereNull('left_at');
+                },
+                'expenses'
+            ])
+            ->get();
+
+        return view('colocation.colocation', compact('colocations'));
     }
 
-    public function store(Request $request){
+    public function show(Colocation $colocation)
+    {
+        if (
+            !$colocation->memberships()
+                ->where('user_id', Auth::id())
+                ->whereNull('left_at')
+                ->exists()
+        ) {
+
+            abort(403);
+        }
+
+        $colocation->load([
+            'categories',
+            'expenses.payer',
+            'expenses.category',
+            'memberships' => function ($q) {
+                $q->whereNull('left_at');
+            }
+        ]);
+
+        $totalExpenses = $colocation->expenses()->sum('amount');
+
+        return view('colocation.coloc_detail', compact(
+            'colocation',
+            'totalExpenses'
+        ));
+    }
+
+    public function colocDetail()
+    {
+        return view('colocation.coloc_detail');
+    }
+
+    public function store(Request $request)
+    {
 
         $request->validate([
-            'colocName' => ['required','string', 'max:255']
+            'colocName' => ['required', 'string', 'max:255'],
         ]);
 
         $hasActiveMembership = Membership::where('user_id', Auth::id())->whereNull('left_at')->exists();
@@ -30,7 +77,7 @@ class ColocationController extends Controller
         DB::transaction(function () use ($request) {
 
             $coloc = Colocation::create([
-                'name' => $request->colocName,
+                'title' => $request->colocName,
                 'description' => $request->description,
                 'status' => 'active',
             ]);
