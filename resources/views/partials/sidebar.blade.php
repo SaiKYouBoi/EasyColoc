@@ -9,34 +9,54 @@
                 <span class="text-xl font-bold tracking-tight text-slate-900">EasyColoc</span>
             </div>
         </div>
+
+        {{-- Error message --}}
+        <x-flash-message />
+
         <div class="flex flex-col gap-2 p-4 flex-1 overflow-y-auto">
             <!-- User Profile Summary -->
             <div class="mb-6 flex items-center gap-3 rounded-xl bg-background-light p-3">
                 <div class="size-10 rounded-lg bg-primary/20 flex items-center justify-center text-lg font-bold text-primary uppercase">
-                                        A
+                                        {{ ucfirst(substr(Auth::user()->name,0,1)) }}
                                     </div>
                 <div class="flex flex-col">
-                    <span class="text-sm font-semibold text-slate-900">Alex Morgan</span>
-                    <span class="text-xs text-slate-500">Premium Member</span>
+                    <span class="text-sm font-semibold text-slate-900">{{ Auth::user()->name }}</span>
+                    @if (Auth::user()->is_admin)
+                    <span class="text-xs text-slate-500">Admin</span>
+                    @endif
                 </div>
             </div>
+            @php
+            function isActive($name) {
+                    $activeClass = "bg-primary/10 text-primary-dark transition-colors";
+                    $inactiveClass = "text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors";
+                    return request()->routeIs($name) ? $activeClass : $inactiveClass;
+                }
+            @endphp
             <!-- Navigation Links -->
             <nav class="space-y-1">
-                <a class="flex items-center gap-3 rounded-lg bg-primary/10 px-3 py-2.5 text-primary-dark transition-colors"
+                <a class="flex items-center gap-3 rounded-lg px-3 py-2.5 {{ isActive('userdashboard') }}"
                     href="{{ route('userdashboard') }}">
                     <span class="material-symbols-outlined">dashboard</span>
                     <span class="text-sm font-medium">Dashboard</span>
                 </a>
-                <a class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors"
+                <a class="flex items-center gap-3 rounded-lg px-3 py-2.5 {{ isActive('colocations') }}"
                     href="{{ route('colocations') }}">
                     <span class="material-symbols-outlined">home_work</span>
                     <span class="text-sm font-medium">Colocations</span>
                 </a>
+                <a class="flex items-center gap-3 rounded-lg px-3 py-2.5 {{ isActive('profile.edit') }}"
+                    href="{{ route('profile.edit') }}">
+                    <span class="material-symbols-outlined">account_circle</span>
+                    <span class="text-sm font-medium">Profile</span>
+                </a>
+                @if (Auth::user()->is_admin)
                 <a class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors"
                     href="#">
                     <span class="material-symbols-outlined">person</span>
                     <span class="text-sm font-medium">Admin</span>
                 </a>
+                @endif
             </nav>
         </div>
         <div class="border-t border-slate-100 p-4">
@@ -57,10 +77,13 @@
                 </div>
 
             </div>
-            <a class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-slate-600 hover:bg-slate-50 hover:text-red-600 transition-colors"
-                href="#">
+            <form method="POST" action="{{ route('logout') }}">
+                            @csrf
+            <button class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-slate-600 hover:bg-slate-50 hover:text-red-600 transition-colors"
+                type="submit">
                 <span class="material-symbols-outlined">logout</span>
                 <span class="text-sm font-medium">Logout</span>
-            </a>
+            </button>
+            </form>
         </div>
     </aside>
