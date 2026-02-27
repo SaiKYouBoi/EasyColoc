@@ -19,14 +19,13 @@
             <div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
                 <div>
                     <h1 class="text-3xl font-bold text-slate-900 tracking-tight">Colocations</h1>
-                    <p class="text-slate-500 mt-1">Overview of your shared finances for <span
-                            class="font-medium text-slate-900">Sunnyvale Apt 4B</span></p>
+                    <p class="text-slate-500 mt-1">Overview of your colocations<span
+                            class="font-medium text-slate-900"></span></p>
                 </div>
             </div>
 
-            <x-flash-message />
-
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                @foreach ($colocations as $coloc )
                 <div
                     class="group bg-surface-light dark:bg-surface-dark rounded-2xl p-6 shadow-sm border border-gray-200 dark:border-gray-700 hover:shadow-xl hover:border-primary/30 dark:hover:border-primary/50 transition-all duration-300 relative overflow-hidden flex flex-col justify-between min-h-[220px]">
                     <div
@@ -38,11 +37,18 @@
                             C1
                         </div>
                         <div class="flex gap-2">
+                            @if ( $coloc->pivot->role == 'owner')
                             <span
                                 class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300 border border-amber-200 dark:border-amber-700/50">
                                 <span class="material-icons-outlined text-[10px] mr-1">emoji_events</span>
                                 OWNER
                             </span>
+                            @else
+                            <span
+                                class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300 border border-blue-200 dark:border-blue-700/50">
+                                MEMBER
+                            </span>
+                            @endif
                             <span
                                 class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300 border border-green-200 dark:border-green-700/50">
                                 ACTIVE
@@ -52,10 +58,10 @@
                     <div class="mb-6 relative z-10">
                         <h3
                             class="text-lg font-bold text-text-main-light dark:text-text-main-dark mb-1 group-hover:text-primary transition-colors">
-                            Sunnyvale Apartment</h3>
+                            {{ $coloc->title }}</h3>
                         <div class="flex items-center text-text-sub-light dark:text-text-sub-dark text-sm">
                             <span class="material-icons-outlined text-sm mr-1">people</span>
-                            3 Members
+                            {{ $coloc->active_members_count }} Members
                         </div>
                     </div>
                     <div
@@ -64,15 +70,16 @@
                             <p
                                 class="text-xs text-text-sub-light dark:text-text-sub-dark uppercase tracking-wider font-semibold mb-0.5">
                                 Expenses</p>
-                            <p class="text-2xl font-bold text-text-main-light dark:text-text-main-dark">12</p>
+                            <p class="text-2xl font-bold text-text-main-light dark:text-text-main-dark">{{ $coloc->expenses_count ?? 0 }}</p>
                         </div>
-                        <button
+                        <a href="{{ route('colocations.show', $coloc->id) }}"
                             class="h-10 w-10 rounded-full bg-gray-50 dark:bg-gray-800 hover:bg-primary hover:text-white dark:hover:bg-primary dark:hover:text-white text-text-main-light dark:text-text-main-dark flex items-center justify-center transition-all shadow-sm border border-gray-200 dark:border-gray-700 group-hover:border-primary/50">
                             <span class="material-icons-outlined">arrow_forward</span>
-                        </button>
+                        </a>
                     </div>
                 </div>
-                <div
+                @endforeach
+                {{-- <div
                     class="group bg-surface-light dark:bg-surface-dark rounded-2xl p-6 shadow-sm border border-gray-200 dark:border-gray-700 hover:shadow-xl hover:border-primary/30 dark:hover:border-primary/50 transition-all duration-300 relative overflow-hidden flex flex-col justify-between min-h-[220px]">
                     <div class="flex justify-between items-start mb-4 relative z-10">
                         <div
@@ -112,8 +119,8 @@
                             <span class="material-icons-outlined">arrow_forward</span>
                         </button>
                     </div>
-                </div>
-                <div
+                </div> --}}
+                {{-- <div
                     class="group bg-surface-light dark:bg-surface-dark rounded-2xl p-6 shadow-sm border border-gray-200 dark:border-gray-700 hover:shadow-xl hover:border-primary/30 dark:hover:border-primary/50 transition-all duration-300 relative overflow-hidden flex flex-col justify-between min-h-[220px] opacity-80 hover:opacity-100">
                     <div class="flex justify-between items-start mb-4 relative z-10">
                         <div
@@ -149,7 +156,7 @@
                             <span class="material-icons-outlined">settings</span>
                         </button>
                     </div>
-                </div>
+                </div> --}}
                 <div
                     class="group bg-transparent rounded-2xl p-6 border-2 border-dashed border-gray-300 dark:border-gray-700 hover:border-primary dark:hover:border-primary hover:bg-primary/5 transition-all duration-300 flex flex-col items-center justify-center min-h-[220px] cursor-pointer">
                     <button id="createColocation">
