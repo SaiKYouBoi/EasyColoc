@@ -27,8 +27,6 @@ Route::middleware(['auth','checkbanned'])->group(function () {
     Route::post('/colocations/{colocation}/categories', [CategoryController::class, 'store'])->name('category.store');
     Route::post('/colocations/{colocation}', [ExpenseController::class, 'store'])->name('expense.store');
 
-
-
 });
 
 Route::middleware('auth')->group(function () {
