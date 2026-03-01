@@ -13,7 +13,15 @@ class Expense extends Model
         'category_id',
         'title',
         'amount',
+        'date',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'date' => 'datetime',
+        ];
+    }
 
     public function colocation()
     {
