@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Colocation;
+use App\Models\ExpenseDetail;
 use App\Models\Membership;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -39,10 +40,18 @@ class ColocationController extends Controller
             abort(403);
         }
 
+        $expensesQuery = $colocation->expenses()->with(['payer', 'category']);
+
+        if ($month = request('monthFilter')) {
+            [$year, $monthNum] = explode('-', $month);
+            $expensesQuery->whereYear('date', $year)
+                ->whereMonth('date', $monthNum);
+        }
+
+        $expenses = $expensesQuery->get();
+
         $colocation->load([
             'categories',
-            'expenses.payer',
-            'expenses.category',
             'memberships' => function ($q) {
                 $q->whereNull('left_at');
             }
@@ -50,9 +59,84 @@ class ColocationController extends Controller
 
         $totalExpenses = $colocation->expenses()->sum('amount');
 
+        //user balance
+        $user = Auth::user();
+
+        $details = ExpenseDetail::with('expense')
+            ->whereHas('expense', function ($q) use ($colocation) {
+                $q->where('colocation_id', $colocation->id);
+            })
+            ->get();
+
+        $balance = 0;
+
+        foreach ($details as $detail) {
+            $expense = $detail->expense;
+
+            if ($expense->payer_id == $user->id) {
+                // Others owe him
+                if ($detail->debtor_id != $user->id) {
+                    $balance += $detail->amount;
+                }
+            }
+
+            if ($detail->debtor_id == $user->id && $expense->payer_id != $user->id) {
+                // He owes others
+                $balance -= $detail->amount;
+            }
+        }
+
+
+        $members = $colocation->memberships()
+            ->with('user')
+            ->get()
+            ->pluck('user', 'user_id');
+
+
+        $details = ExpenseDetail::with(['expense.payer', 'debtor'])
+            ->whereHas('expense', function ($q) use ($colocation) {
+                $q->where('colocation_id', $colocation->id);
+            })
+            ->where('status', 'unpaid')
+            ->get();
+
+        $balances = [];
+
+        foreach ($details as $detail) {
+
+            $payerId = $detail->expense->payer_id;
+            $debtorId = $detail->debtor_id;
+            $amount = $detail->amount;
+
+            // Skip if it doesn't involve me
+            if ($payerId != $user->id && $debtorId != $user->id) {
+                continue;
+            }
+
+            $otherUserId = $payerId == $user->id ? $debtorId : $payerId;
+
+            if (!isset($balances[$otherUserId])) {
+                $balances[$otherUserId] = 0;
+            }
+
+            if ($payerId == $user->id) {
+                // They owe me
+                $balances[$otherUserId] += $amount;
+            } else {
+                // I owe them
+                $balances[$otherUserId] -= $amount;
+            }
+        }
+
+
+
         return view('colocation.coloc_detail', compact(
             'colocation',
-            'totalExpenses'
+            'totalExpenses',
+            'expenses',
+            'balance',
+            'members',
+            'balances',
         ));
     }
 
