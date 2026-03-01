@@ -91,7 +91,7 @@
                             <div class="relative">
                                 <input name="categoryName"
                                     class="w-full h-12 px-4 rounded-xl border border-slate-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-zinc-500 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all outline-none"
-                                    placeholder="e.g., Subscriptions" type="text" />
+                                    placeholder="e.g., Subscriptions" type="text" required />
                             </div>
                         </div>
                         <!-- Icon Picker (Optional Enhancement) -->
