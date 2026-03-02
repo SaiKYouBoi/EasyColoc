@@ -41,8 +41,25 @@
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
-                        @foreach ($colocation->categories as $category)
-                            <tr class="group hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors">
+                            @if ($colocation->categories->isEmpty())
+                                    <div
+                                        class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-sm p-12 flex flex-col items-center text-center">
+                                        <div
+                                            class="size-20 rounded-full bg-primary/10 text-primary flex items-center justify-center mb-6">
+                                            <span class="material-symbols-outlined text-4xl"
+                                                style="font-variation-settings: 'FILL' 0, 'wght' 300;">folder_open</span>
+                                        </div>
+                                        <h2 class="text-xl font-bold text-slate-900 dark:text-white mb-2">No categories
+                                            found</h2>
+                                        <p class="text-slate-500 dark:text-slate-400 max-w-sm mb-8">
+                                            Get started by creating your first expense category to organize your shared
+                                            living
+                                            costs.
+                                        </p>
+                                    </div>
+                                @endif
+                            @foreach ($colocation->categories as $category)
+                            <tr class="group hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors"></tr>
                                 <td class="px-6 py-4">
                                     <div class="flex items-center gap-3">
                                         <div
@@ -53,37 +70,41 @@
                                     </div>
                                 </td>
                                 <td class="px-6 py-4 text-right">
-                                    <button
-                                        class="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg transition-all">
-                                        <span class="material-symbols-outlined text-sm">delete</span>
-                                    </button>
+                                    <form action="{{ route('category.destroy', [$colocation, $category]) }}" method="POST">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit"
+                                            class="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg transition-all">
+                                            <span class="material-symbols-outlined text-sm">delete</span>
+                                        </button>
+                                    </form>
                                 </td>
                             </tr>
-                        @endforeach
+                            @endforeach
                     </tbody>
                 </table>
             </div>
-        </main>
-        {{-- Category Modal --}}
-        <!-- Modal Overlay -->
-        <div id="modal"
-            class="fixed hidden inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
-            <div
-                class="bg-white dark:bg-zinc-900 w-full max-w-md rounded-2xl shadow-2xl overflow-hidden border border-slate-200 dark:border-zinc-800">
-                <div class="p-8">
-                    <!-- Header Component Variation -->
-                    <div class="flex flex-col gap-2 mb-8">
-                        <h2 class="text-slate-900 dark:text-slate-100 text-2xl font-bold tracking-tight">Add New
-                            Category
-                        </h2>
-                        <p class="text-slate-500 dark:text-zinc-400 text-sm font-normal leading-relaxed">
-                            Enter a name for the new expense category.
-                        </p>
-                    </div>
-                    <form action="{{ route('category.store',$colocation) }}" id="categoryForm" method="POST">
-                        @csrf
+    </main>
+    {{-- Category Modal --}}
+    <!-- Modal Overlay -->
+    <div id="modal"
+        class="fixed hidden inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
+        <div
+            class="bg-white dark:bg-zinc-900 w-full max-w-md rounded-2xl shadow-2xl overflow-hidden border border-slate-200 dark:border-zinc-800">
+            <div class="p-8">
+                <!-- Header Component Variation -->
+                <div class="flex flex-col gap-2 mb-8">
+                    <h2 class="text-slate-900 dark:text-slate-100 text-2xl font-bold tracking-tight">Add New
+                        Category
+                    </h2>
+                    <p class="text-slate-500 dark:text-zinc-400 text-sm font-normal leading-relaxed">
+                        Enter a name for the new expense category.
+                    </p>
+                </div>
+                <form action="{{ route('category.store', $colocation) }}" id="categoryForm" method="POST">
+                    @csrf
                     <!-- Form Section -->
-                    <div class="flex flex-col gap-6" >
+                    <div class="flex flex-col gap-6">
                         <div class="flex flex-col gap-2">
                             <label class="text-slate-700 dark:text-zinc-300 text-sm font-semibold leading-none">
                                 Category Name
@@ -109,14 +130,14 @@
                             Create Category
                         </button>
                     </div>
-                </div>
-                <!-- Bottom Accent -->
-                <div class="h-1.5 w-full bg-gradient-to-r from-primary to-[#13ecb6]"></div>
             </div>
-            </form>
+            <!-- Bottom Accent -->
+            <div class="h-1.5 w-full bg-gradient-to-r from-primary to-[#13ecb6]"></div>
         </div>
+        </form>
+    </div>
 
-        <script>
+    <script>
         modal = document.getElementById('modal');
         form = document.getElementById('categoryForm');
 
@@ -131,5 +152,5 @@
             modal.classList.add('hidden');
             form.reset();
         });
-        </script>
+    </script>
 @endsection
