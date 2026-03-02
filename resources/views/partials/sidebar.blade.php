@@ -68,8 +68,7 @@
                         <h4 class="font-bold text-xs text-slate-900 dark:text-slate-100">Reputation</h4>
                     </div>
                     <div class="flex items-baseline gap-1 mb-1">
-                        <span class="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100">+12</span>
-
+                        <span class="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100">{{ Auth::user()->reputation }}</span>
                     </div>
                     <div class="mt-2 h-1 w-full bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
                         <div class="h-full bg-primary rounded-full w-[80%]"></div>
