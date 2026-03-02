@@ -10,11 +10,32 @@
                     <p class="text-slate-500 mt-1">Overview of your colocation <span
                             class="font-medium text-slate-900">{{ $colocation->title }}</span></p>
                 </div>
-                <button
-                    class="hidden md:flex items-center gap-2 px-4 py-2 text-sm font-medium text-red-500 bg-red-50 dark:bg-red-900/10 hover:bg-red-100 dark:hover:bg-red-900/20 rounded-xl transition-colors">
-                    <span class="material-symbols-outlined text-lg">logout</span>
-                    Leave
-                </button>
+                <div class="flex gap-4">
+                    @php
+                        $activeCount = $colocation->memberships()->whereNull('left_at')->count();
+                    @endphp
+                    @if ($role == 'owner')
+                        <form method="POST" action="{{ route('colocation.cancel', $colocation) }}">
+                            @csrf
+                            @method('PATCH')
+                            <button {{ $activeCount > 1 ? 'disabled' : '' }} type="submit"
+                                class="{{ $activeCount > 1 ? 'opacity-50 cursor-not-allowed' : '' }}hidden md:flex items-center gap-2 px-4 py-2 text-sm font-medium text-red-500 bg-red-50 dark:bg-red-900/10 hover:bg-red-100 dark:hover:bg-red-900/20 rounded-xl transition-colors">
+                                <span class="material-symbols-outlined text-lg">cancel</span>
+                                Cancel Colocation
+                            </button>
+                        </form>
+                    @else
+                        <form action="{{ route('colocation.leave', $colocation) }}" method="POST">
+                            @csrf
+                            @method('PATCH')
+                            <button
+                                class="hidden md:flex items-center gap-2 px-4 py-2 text-sm font-medium text-red-500 bg-red-50 dark:bg-red-900/10 hover:bg-red-100 dark:hover:bg-red-900/20 rounded-xl transition-colors">
+                                <span class="material-symbols-outlined text-lg">logout</span>
+                                Leave
+                            </button>
+                        </form>
+                    @endif
+                </div>
             </div>
             <section class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div
@@ -55,13 +76,15 @@
                     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                         <h2 class="text-2xl font-bold text-slate-900 dark:text-white">Expenses</h2>
                         <div class="flex gap-4">
-                            <a href="{{ route('categories.show', $colocation) }}">
-                                <button
-                                    class="bg-primary hover:bg-primary-dark text-white font-medium py-2.5 px-5 rounded-lg flex items-center gap-2 transition-all shadow-sm shadow-primary/20">
-                                    <span class="material-symbols-outlined text-xl">settings</span>
-                                    Manage Categories
-                                </button>
-                            </a>
+                            @if ($role == 'owner')
+                                <a href="{{ route('categories.show', $colocation) }}">
+                                    <button
+                                        class="bg-primary hover:bg-primary-dark text-white font-medium py-2.5 px-5 rounded-lg flex items-center gap-2 transition-all shadow-sm shadow-primary/20">
+                                        <span class="material-symbols-outlined text-xl">settings</span>
+                                        Manage Categories
+                                    </button>
+                                </a>
+                            @endif
                             <button id="createExpense"
                                 class="bg-primary hover:bg-primary-dark text-white font-medium py-2.5 px-5 rounded-lg flex items-center gap-2 transition-all shadow-sm shadow-primary/20">
                                 <span class="material-symbols-outlined text-xl">add</span>
@@ -121,13 +144,40 @@
                                             <td class="px-6 py-5 text-sm font-bold">
                                                 {{ number_format($expense->amount, 2) }}
                                                 MAD</td>
-                                            <td class="px-6 py-5 text-right">
-                                                <button class="text-slate-400 hover:text-primary transition-colors p-1">
+                                            <td class="flex gap-2 justify-end px-6 py-5 text-right">
+                                                <form action="{{ route('expense.destroy', [$colocation, $expense]) }}"
+                                                    method="POST">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit"
+                                                        class="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg transition-all">
+                                                        <span class="material-symbols-outlined text-sm">delete</span>
+                                                    </button>
+                                                </form>
+
+                                                <a href="{{ route('expense.show', $expense->id) }}"
+                                                    class="text-slate-400 hover:text-primary transition-colors p-1">
                                                     <span class="material-symbols-outlined text-xl">visibility</span>
-                                                </button>
+                                                </a>
+
                                             </td>
                                         </tr>
                                     @endforeach
+                                    @if ($expenses->isEmpty())
+                                        <div class="flex flex-col items-center justify-center py-20 px-6 text-center">
+                                            <div
+                                                class="size-20 bg-slate-50 dark:bg-slate-800 rounded-full flex items-center justify-center mb-6">
+                                                <span
+                                                    class="material-symbols-outlined text-slate-300 text-5xl">receipt_long</span>
+                                            </div>
+                                            <h3 class="text-xl font-bold text-slate-900 dark:text-white mb-2">No expenses
+                                                yet</h3>
+                                            <p class="text-slate-500 dark:text-slate-400 text-sm max-w-[280px] mx-auto">
+                                                Add your first expense to start tracking with your roommates.
+                                            </p>
+
+                                        </div>
+                                    @endif
                                     {{-- <tr class="group hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
                                         <td class="px-6 py-5">
                                             <div class="flex flex-col">
@@ -231,7 +281,6 @@
                                         class="px-3 py-1.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-lg text-[11px] font-bold transition-colors">Settle</button>
                                 </div> --}}
                                 <!-- Row 2: Alex M. owes You -->
-
                                 @foreach ($balances as $userId => $amount)
                                     @php
                                         $otherUser = $members[$userId];
@@ -278,7 +327,19 @@
                                         </div>
                                     </div>
                                 @endforeach
-
+                                @if (empty($balances))
+                                    <div
+                                        class="bg-white dark:bg-slate-900 rounded-2xl shadow-sm p-8 min-h-[200px] flex flex-col items-center justify-center text-center">
+                                        <div class="bg-slate-50 dark:bg-slate-800 p-4 rounded-full mb-3">
+                                            <span
+                                                class="material-symbols-outlined text-slate-300 text-3xl">check_circle</span>
+                                        </div>
+                                        <p class="text-slate-500 dark:text-slate-400 text-sm font-medium">No pending
+                                            settlements.</p>
+                                        <p class="text-slate-400 dark:text-slate-500 text-xs mt-1">Everyone is squared up!
+                                        </p>
+                                    </div>
+                                @endif
                                 {{-- <div class="flex items-center justify-between py-4 first:pt-0 last:pb-0">
                                     <div class="flex items-center gap-3">
                                         <div class="flex -space-x-2">
@@ -355,7 +416,17 @@
                                             @endif
                                         </div>
                                     </div>
-                                    <span class="text-xs font-bold text-primary">0</span>
+                                    @if ($role === 'owner' && $membership->id !== Auth::user()->id)
+                                        <form action="{{ route('member.destroy', [$colocation, $membership->user]) }} "
+                                            method="POST">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button
+                                                class="p-1.5 text-slate-500 hover:text-red-400 hover:bg-white/10 rounded-lg transition-colors">
+                                                <span class="material-symbols-outlined text-lg">person_remove</span>
+                                            </button>
+                                        </form>
+                                    @endif
                                 </div>
                             @endforeach
                             {{-- <div
@@ -503,6 +574,7 @@
             </div>
         </div>
     </main>
+    
     {{-- Category Modal --}}
     <!-- Modal Overlay -->
     <div id="inviteModal"
@@ -555,155 +627,7 @@
         </form>
     </div>
 
-    {{-- Expense Details --}}
-    <!-- Header Section -->
-    <div id="expenseDetail"
-        class="fixed hidden inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
-        <div
-            class="w-full max-w-lg bg-surface-light dark:bg-surface-dark rounded-xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.2)] overflow-hidden border border-slate-100 dark:border-slate-800 transition-colors duration-200">
-            <div class="relative p-6 border-b border-slate-100 dark:border-slate-800/50">
-                <button
-                    class="absolute right-6 top-6 text-text-sub-light dark:text-text-sub-dark hover:text-text-main-light dark:hover:text-text-main-dark transition-colors">
-                    <span class="material-symbols-outlined">close</span>
-                </button>
-                <div class="flex items-center gap-3 mb-2">
-                    <div
-                        class="flex h-10 w-10 items-center justify-center rounded-full bg-primary/20 text-primary-dark dark:text-primary">
-                        <span class="material-symbols-outlined">wifi</span>
-                    </div>
-                    <span
-                        class="px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-xs font-medium text-text-sub-light dark:text-text-sub-dark">Utility</span>
-                </div>
-                <h1 class="text-3xl font-bold text-text-main-light dark:text-text-main-dark tracking-tight mb-2">
-                    WiFi <span class="text-text-sub-light dark:text-text-sub-dark font-normal mx-2">|</span> 500 DH
-                </h1>
-                <div class="flex items-center gap-2 text-sm text-text-sub-light dark:text-text-sub-dark">
-                    <span class="material-symbols-outlined text-[18px]">calendar_today</span>
-                    <span>Paid by <strong
-                            class="text-text-main-light dark:text-text-main-dark font-semibold">Sarah</strong> on
-                        Oct 24, 2023</span>
-                </div>
-            </div>
-            <!-- Split Details Section -->
-            <div class="p-6">
-                <div class="flex items-center justify-between mb-6">
-                    <h2 class="text-lg font-bold text-text-main-light dark:text-text-main-dark">Split Breakdown</h2>
-                    <div class="text-xs font-medium text-primary uppercase tracking-wider bg-primary/10 px-2 py-1 rounded">
-                        2 of
-                        4 Settled</div>
-                </div>
-                <div class="space-y-4">
-                    <!-- User Row: Payer (You) -->
-                    <div
-                        class="flex items-center justify-between p-3 -mx-3 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors group">
-                        <div class="flex items-center gap-4">
-                            <div class="relative">
-                                <div class="h-12 w-12 rounded-full bg-cover bg-center border-2 border-primary p-0.5"
-                                    data-alt="Portrait of Sarah smiling"
-                                    style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAXrG2nR-2rdQz1HJZ2VJadc8Z1B92E_bZ-lqQNfToHreiik-VziQ3oSpkqwJNI5Mu2K6Nd1gPXm5xcO6K71haKPTQHVvwwrPjojOundWB8pEG_Y7EHrv5yQxNY3SKuyE9bKd-CTIQATe2ILcVZ3clhZqPn8HwBtmP-w5maRP4iJdXOZAfcEQSoIciSIl1aQ3dqbH9oKdIzXX8eAnVH8Ie52IuIPoqZlBQCAwebRBhZNpttb3_PwG2C9V6dtRUWBtjaA3EUoYwVwzc');">
-                                </div>
-                                <div
-                                    class="absolute -bottom-1 -right-1 bg-primary text-[#111816] rounded-full p-0.5 border-2 border-white dark:border-surface-dark">
-                                    <span class="material-symbols-outlined text-[12px] font-bold block">check</span>
-                                </div>
-                            </div>
-                            <div class="flex flex-col">
-                                <p
-                                    class="text-text-main-light dark:text-text-main-dark font-semibold text-base flex items-center gap-2">
-                                    Sarah <span
-                                        class="text-xs font-normal text-text-sub-light dark:text-text-sub-dark bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded">(You)</span>
-                                </p>
-                                <p class="text-text-sub-light dark:text-text-sub-dark text-sm">Paid 500 DH • 125 DH share
-                                </p>
-                            </div>
-                        </div>
-                        <div class="text-right">
-                            <span class="block text-primary font-semibold text-sm">Payer</span>
-                        </div>
-                    </div>
-                    <!-- User Row: Mike (Settled) -->
-                    <div
-                        class="flex items-center justify-between p-3 -mx-3 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors group">
-                        <div class="flex items-center gap-4">
-                            <div class="h-12 w-12 rounded-full bg-cover bg-center bg-slate-200 dark:bg-slate-700"
-                                data-alt="Portrait of Mike smiling"
-                                style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBt45ht2w1BpNeHV82_6HqWmkjU8e-vzpAaN9gieVYmRCbt5qwCOq32IIc--T3zr5nckg6CXG07iuLMNJlNk4UGs3bU2NCj1iJnl-jQ7uiqflq-OOm9-MpB_SAEE-A52HWi8uCSq4IHuB4gvLq_SfaTqWGazI1CqtM6zRcSfFJn3qamuDa1CBPXOs0FrNXD0hK5WFz5eiRqbhuBxkt6xtrsuWjV67VcNH1vsySSFU2vk1VXBDk8Pj6i1X_Qg2Byd_i0TLo7qoCk9Lk');">
-                            </div>
-                            <div class="flex flex-col">
-                                <p class="text-text-main-light dark:text-text-main-dark font-semibold text-base">Mike</p>
-                                <p class="text-emerald-600 dark:text-emerald-400 text-sm font-medium">Settled 125 DH</p>
-                            </div>
-                        </div>
-                        <div class="shrink-0">
-                            <label
-                                class="flex items-center justify-center cursor-pointer p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
-                                <input checked=""
-                                    class="h-5 w-5 rounded border-slate-300 dark:border-slate-600 bg-white dark:bg-surface-dark text-primary focus:ring-primary/20 focus:ring-offset-0 transition-all cursor-pointer"
-                                    type="checkbox" />
-                            </label>
-                        </div>
-                    </div>
-                    <!-- User Row: Jessica (Pending) -->
-                    <div
-                        class="flex items-center justify-between p-3 -mx-3 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors group">
-                        <div class="flex items-center gap-4">
-                            <div class="h-12 w-12 rounded-full bg-cover bg-center bg-slate-200 dark:bg-slate-700"
-                                data-alt="Portrait of Jessica smiling"
-                                style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBCcX46TUlIgVscQ6Zge2tK8egpeJ25uu8rVR8YoOqFIKWpronGvUt5iXCSl-eY19veSOjJuU0PFqYSga-keWakILlr5MHC6HTsxD9KmNNVwQY3_UgxK0lw4wwOrWig9vweo8T2-yPwmTiuDPaOoW_orXlCbBdqk3LpDqvlwawr5ue4shjN4kgrPllffn64BwQ7n6IBTCEwd6OF8jlwg-dXcyULc_CSti9dr8l4hUNUZhb1NTo8PgXgtaOTUG4N2_nBt9BmfaXYHVQ');">
-                            </div>
-                            <div class="flex flex-col">
-                                <p class="text-text-main-light dark:text-text-main-dark font-semibold text-base">Jessica
-                                </p>
-                                <p class="text-rose-500 dark:text-rose-400 text-sm font-medium">Owes 125 DH</p>
-                            </div>
-                        </div>
-                        <div class="shrink-0">
-                            <label
-                                class="flex items-center justify-center cursor-pointer p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
-                                <input
-                                    class="h-5 w-5 rounded border-slate-300 dark:border-slate-600 bg-white dark:bg-surface-dark text-primary focus:ring-primary/20 focus:ring-offset-0 transition-all cursor-pointer"
-                                    type="checkbox" />
-                            </label>
-                        </div>
-                    </div>
-                    <!-- User Row: David (Pending) -->
-                    <div
-                        class="flex items-center justify-between p-3 -mx-3 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors group">
-                        <div class="flex items-center gap-4">
-                            <div class="h-12 w-12 rounded-full bg-cover bg-center bg-slate-200 dark:bg-slate-700"
-                                data-alt="Portrait of David looking serious"
-                                style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuC5-H9W65PxvM4ATA5iG3j1Ra8kXNe2E7IaGXmo856Gq-8KkOnts7W7veWcHTlos-P0L3_0AjaOp0tmgOuwScjzjKiqWtkjoXVOwhV_Is2bhPbT6707wCCjJrMSgZYfAuSlkPe3Rzhw_M86OfDlRCMeRg0q0WhOqfR92hh2Ee1x5Zsy6LirMBLWZpLcxuh4h7W-D_Oy8ObnqDt5boqyw4fv2yn3q4nYO_067k0Qk0gwtHVqwXhQe0_bLQ1pjktHe77bQwP1j_WKgLA');">
-                            </div>
-                            <div class="flex flex-col">
-                                <p class="text-text-main-light dark:text-text-main-dark font-semibold text-base">David</p>
-                                <p class="text-rose-500 dark:text-rose-400 text-sm font-medium">Owes 125 DH</p>
-                            </div>
-                        </div>
-                        <div class="shrink-0">
-                            <label
-                                class="flex items-center justify-center cursor-pointer p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
-                                <input
-                                    class="h-5 w-5 rounded border-slate-300 dark:border-slate-600 bg-white dark:bg-surface-dark text-primary focus:ring-primary/20 focus:ring-offset-0 transition-all cursor-pointer"
-                                    type="checkbox" />
-                            </label>
-                        </div>
-                    </div>
-                </div>
-                <!-- Action Footer -->
-                <div class="mt-8 pt-6 border-t border-slate-100 dark:border-slate-800/50 flex flex-col gap-3">
-                    <button
-                        class="w-full bg-primary hover:bg-[#10dcb0] text-[#111816] font-semibold py-3 px-4 rounded-lg transition-colors flex items-center justify-center gap-2">
-                        <span class="material-symbols-outlined text-[20px]">notifications_active</span>
-                        Send Reminders
-                    </button>
-                    <button type="button" id="cancelExpenseDetail"
-                        class="w-full bg-transparent hover:bg-slate-50 dark:hover:bg-slate-800/50 text-text-sub-light dark:text-text-sub-dark font-medium py-3 px-4 rounded-lg transition-colors border border-transparent hover:border-slate-200 dark:hover:border-slate-700">
-                        Cancel
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
+
 
     <script>
         modal = document.getElementById('modal');
@@ -746,19 +670,5 @@
             window.location.href = url.toString();
         });
 
-        expenseDetail = document.getElementById('expenseDetail');
-        expenseDetailForm = document.getElementById('expenseDetailForm');
-
-        createexpense = document.getElementById('createExpense');
-        cancelexpense = document.getElementById('cancelExpense');
-
-        createexpense.addEventListener("click", function(event) {
-            modal.classList.remove('hidden');
-        });
-
-        cancelexpense.addEventListener("click", function(event) {
-            modal.classList.add('hidden');
-            form.reset();
-        });
     </script>
 @endsection
