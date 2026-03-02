@@ -52,7 +52,7 @@
                 </a>
                 @if (Auth::user()->is_admin)
                 <a class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors"
-                    href="#">
+                    href="{{ route('admin.dashboard') }}">
                     <span class="material-symbols-outlined">person</span>
                     <span class="text-sm font-medium">Admin</span>
                 </a>

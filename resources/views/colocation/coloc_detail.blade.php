@@ -178,6 +178,7 @@
 
                                         </div>
                                     @endif
+
                                     {{-- <tr class="group hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
                                         <td class="px-6 py-5">
                                             <div class="flex flex-col">
@@ -574,7 +575,7 @@
             </div>
         </div>
     </main>
-    
+
     {{-- Category Modal --}}
     <!-- Modal Overlay -->
     <div id="inviteModal"
