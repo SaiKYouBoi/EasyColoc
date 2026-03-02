@@ -22,5 +22,6 @@ class ExpenseDetail extends Model
     {
         return $this->belongsTo(User::class, 'debtor_id');
     }
+
     
 }
