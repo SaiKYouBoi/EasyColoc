@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AdminController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\ColocationController;
 use App\Http\Controllers\ColocationMemberController;
@@ -9,17 +10,17 @@ use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 
 
-Route::get('/expense-details', function () {
-    return view('expense.expense_detail');
+Route::get('/admin-dashboard', function () {
+    return view('admin.dashboard');
 });
 
 Route::get('/is-banned', function () {
     return view('auth.is-banned');
 })->name('is-banned');
 
-Route::get('/dashboard', function () {
-    return view('dashboard');
-})->middleware(['auth', 'verified','checkbanned'])->name('dashboard');
+// Route::get('/dashboard', function () {
+//     return view('dashboard');
+// })->middleware(['auth', 'verified','checkbanned'])->name('dashboard');
 
 Route::middleware(['auth','checkbanned'])->group(function () {
     Route::get('/', [DashboardController::class, 'dashboard'])->name('userdashboard');
@@ -37,6 +38,9 @@ Route::middleware(['auth','checkbanned'])->group(function () {
     Route::delete(   '/colocations/{colocation}/members/{member}', [ColocationMemberController::class, 'destroy'])->name('member.destroy');
     Route::patch( '/colocations/{colocation}/cancel', [ColocationController::class, 'cancel'])->name('colocation.cancel');
     Route::patch(    '/colocations/{colocation}/leave',  [ColocationController::class, 'leave'])->name('colocation.leave');
+    Route::get('/admin/dashboard', [AdminController::class, 'dashboard'])->name('admin.dashboard');
+    Route::patch('/admin/users/{user}/ban', [AdminController::class, 'ban'])->name('admin.user.ban');
+    Route::patch('/admin/users/{user}/unban', [AdminController::class, 'unban'])->name('admin.user.unban');
 });
 
 Route::middleware('auth')->group(function () {
