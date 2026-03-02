@@ -128,7 +128,10 @@ class ColocationController extends Controller
             }
         }
 
-
+        $role = $colocation->memberships()
+            ->where('user_id', Auth::user()->id)
+            ->whereNull('left_at')
+            ->value('role');
 
         return view('colocation.coloc_detail', compact(
             'colocation',
@@ -137,6 +140,7 @@ class ColocationController extends Controller
             'balance',
             'members',
             'balances',
+            'role'
         ));
     }
 
@@ -175,6 +179,89 @@ class ColocationController extends Controller
 
         return redirect()->route('colocations')
             ->with('success', 'Colocation created successfully.');
+    }
+
+    public function cancel(Colocation $colocation)
+    {
+        $authUser = Auth::user();
+
+
+        $role = $colocation->memberships()
+            ->where('user_id', $authUser->id)
+            ->whereNull('left_at')
+            ->value('role');
+
+        if ($role !== 'owner') {
+            abort(403, 'Only owner can cancel colocation.');
+        }
+
+
+        $activeMembersCount = $colocation->memberships()
+            ->whereNull('left_at')
+            ->count();
+
+
+        if ($activeMembersCount > 1) {
+            return back()->with('error', 'You cannot cancel while other members still exist.');
+        }
+
+        DB::transaction(function () use ($colocation, $authUser) {
+
+
+            $colocation->status = 'inactive';
+            $colocation->save();
+
+            $colocation->memberships()
+                ->where('user_id', $authUser->id)
+                ->update([
+                    'left_at' => now()
+                ]);
+        });
+
+        return redirect()->route('userdashboard')
+            ->with('success', 'Colocation cancelled successfully.');
+    }
+
+    public function leave(Colocation $colocation)
+    {
+        $user = Auth::user();
+
+
+        $role = $colocation->memberships()
+            ->where('user_id', $user->id)
+            ->whereNull('left_at')
+            ->value('role');
+
+        if ($role === 'owner') {
+            abort(403, 'Owner cannot leave the colocation.');
+        }
+
+        DB::transaction(function () use ($colocation, $user) {
+
+
+            $hasDebt = ExpenseDetail::where('debtor_id', $user->id)
+                ->where('status', 'unpaid')
+                ->whereHas('expense', function ($q) use ($colocation) {
+                    $q->where('colocation_id', $colocation->id);
+                })
+                ->exists();
+
+
+            $colocation->memberships()
+                ->where('user_id', $user->id)
+                ->update([
+                    'left_at' => now()
+                ]);
+
+            if ($hasDebt) {
+                $user->decrement('reputation', 1);
+            } else {
+                $user->increment('reputation', 1);
+            }
+        });
+
+        return redirect()->route('userdashboard')
+            ->with('success', 'You left the colocation successfully.');
     }
 
 }
