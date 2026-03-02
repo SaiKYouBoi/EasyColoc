@@ -57,4 +57,51 @@ class ExpenseController extends Controller
 
         return redirect()->route('colocations.show', $colocation)->with('success', 'Expense created successfully.');
     }
+
+    public function destroy(Colocation $colocation, Expense $expense)
+    {
+        if ($expense->colocation_id !== $colocation->id) {
+            abort(404);
+        }
+
+        $role = $colocation->memberships()
+            ->where('user_id', Auth::user()->id)
+            ->whereNull('left_at')
+            ->value('role');
+
+        if ($role !== 'owner' && $expense->payer_id !== Auth::user()->id) {
+            abort(403);
+        }
+
+        $expense->delete();
+        return back()->with('success', 'Expense deleted permanently.');
+    }
+
+    public function show(Expense $expense)
+    {
+        $expense->load([
+            'payer',
+            'splits.debtor'
+        ]);
+
+        return view('expense.expense_detail', compact('expense'));
+    }
+
+    public function markPaid(ExpenseDetail $split)
+    {
+        $expense = $split->expense;
+
+        $isOwner = Auth::user()->id === $expense->payer_id;
+        $isSelf = Auth::user()->id === $split->debtor_id;
+
+        if (!$isOwner && !$isSelf) {
+            abort(403);
+        }
+
+        $split->update([
+            'status' => 'paid'
+        ]);
+
+        return back()->with('success', 'Payment marked as paid.');
+    }
 }
