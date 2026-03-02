@@ -22,11 +22,6 @@
                     <p class="text-slate-500 mt-1">Overview of your shared finances for <span
                             class="font-medium text-slate-900">Sunnyvale Apt 4B</span></p>
                 </div>
-                <button
-                    class="bg-primary hover:bg-primary-dark text-white font-medium py-2.5 px-5 rounded-lg flex items-center gap-2 transition-all shadow-sm shadow-primary/20">
-                    <span class="material-symbols-outlined text-xl">add</span>
-                    Add Expense
-                </button>
             </div>
             <!-- Financial Cards Grid -->
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -42,7 +37,7 @@
                     </div>
                     <div>
                         <p class="text-sm font-medium text-slate-500">Total Expenses</p>
-                        <h3 class="text-2xl font-bold text-slate-900 mt-1">$3,240.00</h3>
+                        <h3 class="text-2xl font-bold text-slate-900 mt-1">{{ number_format($totalExpenses, 2) }} MAD</h3>
                     </div>
                 </div>
                 <!-- Your Balance -->
@@ -58,7 +53,8 @@
                     </div>
                     <div class="relative z-10">
                         <p class="text-sm font-medium text-slate-500">Your Balance</p>
-                        <h3 class="text-2xl font-bold text-primary-dark mt-1">+$120.50</h3>
+                        <h3 class="text-2xl font-bold mt-1 {{ $yourBalance >= 0 ? 'text-primary-dark' : 'text-red-500' }}">
+                            {{ $yourBalance >= 0 ? '+' : '-' }}{{ number_format(abs($yourBalance), 2) }} MAD</h3>
                     </div>
                 </div>
                 <!-- You Owe -->
@@ -72,7 +68,7 @@
                     </div>
                     <div>
                         <p class="text-sm font-medium text-slate-500">You Owe</p>
-                        <h3 class="text-2xl font-bold text-slate-900 mt-1">$45.00</h3>
+                        <h3 class="text-2xl font-bold text-slate-900 mt-1">{{ number_format($youOwe, 2) }} MAD</h3>
                     </div>
                 </div>
                 <!-- You Are Owed -->
@@ -85,7 +81,7 @@
                     </div>
                     <div>
                         <p class="text-sm font-medium text-slate-500">You Are Owed</p>
-                        <h3 class="text-2xl font-bold text-slate-900 mt-1">$165.50</h3>
+                        <h3 class="text-2xl font-bold text-slate-900 mt-1">{{ number_format($youAreOwed, 2) }} MAD</h3>
                     </div>
                 </div>
             </div>
@@ -116,26 +112,47 @@
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
-                                <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
-                                    <td class="px-6 py-5 font-semibold text-sm">Fiber Internet</td>
-                                    <td class="px-6 py-5">
-                                        <span
-                                            class="px-2.5 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-full text-[11px] font-bold uppercase tracking-tight">Utilities</span>
-                                    </td>
-                                    <td class="px-6 py-5 text-sm font-bold">$80.00</td>
-                                    <td class="px-6 py-5">
-                                        <div class="flex items-center gap-2">
-                                            <div class="size-6 rounded-full bg-slate-200 bg-cover bg-center"
-                                                data-alt="Small circular avatar of a man"
-                                                style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCKkaPpjh7dP4pjpYFhxXnBFTwBXrBEg-fAqOnzRaXc83X4QTdqgHuSziI7zbOXsQHgrDvJNb9i1Y8KnAWsnUHdkB97hO9RUyCoVk3VGsEPDCQQGFjLm35CiXVnOn7zkhZSHQjlrKgpBX34brwq_rhWSZi4j0RqH_ixImNyxEQdc7auqynjPR8E01x9ad9zYy-E0GppBmge6BMyYENwR4albKQyjXwWwdEHnarnuufsCCOXiKSGk8sX5mhIsq-AkuxIdkt9cT6yV1k')">
+                                @if ($recentExpenses->isEmpty())
+                                        <div class="flex flex-col items-center justify-center py-20 px-6 text-center">
+                                            <div
+                                                class="size-20 bg-slate-50 dark:bg-slate-800 rounded-full flex items-center justify-center mb-6">
+                                                <span
+                                                    class="material-symbols-outlined text-slate-300 text-5xl">receipt_long</span>
                                             </div>
-                                            <span class="text-sm font-medium">Alex M.</span>
+                                            <h3 class="text-xl font-bold text-slate-900 dark:text-white mb-2">No expenses
+                                                yet</h3>
+                                            <p class="text-slate-500 dark:text-slate-400 text-sm max-w-[280px] mx-auto">
+                                                Add your first expense to start tracking with your roommates.
+                                            </p>
+
                                         </div>
-                                    </td>
-                                    <td class="px-6 py-5 text-right text-sm text-slate-500">Oct 12, 2023</td>
-                                </tr>
-                                <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
-                                    <td class="px-6 py-5 font-semibold text-sm">Organic Groceries</td>
+                                    @endif
+                                @foreach ($recentExpenses as $expense)
+                                    <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+                                        <td class="px-6 py-5 font-semibold text-sm">{{ $expense->title }}</td>
+                                        <td class="px-6 py-5">
+                                            <span
+                                                class="px-2.5 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-full text-[11px] font-bold uppercase tracking-tight">{{ $expense->category->name ?? 'Gneral' }}</span>
+                                        </td>
+                                        <td class="px-6 py-5 text-sm font-bold">{{ number_format($expense->amount, 2) }} MAD
+                                        </td>
+                                        <td class="px-6 py-5">
+                                            <div class="flex items-center gap-2">
+                                                <div class="size-6 rounded-full bg-slate-200 bg-cover bg-center"
+                                                    data-alt="Small circular avatar of a man"
+                                                    style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCKkaPpjh7dP4pjpYFhxXnBFTwBXrBEg-fAqOnzRaXc83X4QTdqgHuSziI7zbOXsQHgrDvJNb9i1Y8KnAWsnUHdkB97hO9RUyCoVk3VGsEPDCQQGFjLm35CiXVnOn7zkhZSHQjlrKgpBX34brwq_rhWSZi4j0RqH_ixImNyxEQdc7auqynjPR8E01x9ad9zYy-E0GppBmge6BMyYENwR4albKQyjXwWwdEHnarnuufsCCOXiKSGk8sX5mhIsq-AkuxIdkt9cT6yV1k')">
+                                                </div>
+                                                <span
+                                                    class="text-sm font-medium">{{ $expense->payer->id === auth()->id() ? 'You' : $expense->payer->name }}</span>
+                                            </div>
+                                        </td>
+                                        <td class="px-6 py-5 text-right text-sm text-slate-500">
+                                            {{ $expense->created_at->format('M d, Y') }}</td>
+                                    </tr>
+                                    @endforeach
+
+                                    {{-- <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+                                    <td class="px-6 py-5 font-semibold text-sm">{{ $expense->category->name ?? 'General' }}</td>
                                     <td class="px-6 py-5">
                                         <span
                                             class="px-2.5 py-1 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 rounded-full text-[11px] font-bold uppercase tracking-tight">Food</span>
@@ -179,16 +196,13 @@
                                         </div>
                                     </td>
                                     <td class="px-6 py-5 text-right text-sm text-slate-500">Sep 28, 2023</td>
-                                </tr>
+                                </tr> --}}
                             </tbody>
                         </table>
                     </div>
-                    <div class="p-4 border-t border-slate-200 dark:border-slate-800 text-center">
-                        <button class="text-sm font-semibold text-slate-400 hover:text-primary transition-colors">View All
-                            Transactions</button>
-                    </div>
+
                 </div>
-                <!-- Right Sidebar (Recent Activity) -->
+
             </div>
         </div>
     </main>
