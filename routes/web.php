@@ -6,9 +6,9 @@ use App\Http\Controllers\ColocationController;
 use App\Http\Controllers\ColocationMemberController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ExpenseController;
+use App\Http\Controllers\InvitationController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
-
 
 Route::get('/admin-dashboard', function () {
     return view('admin.dashboard');
@@ -41,6 +41,8 @@ Route::middleware(['auth','checkbanned'])->group(function () {
     Route::get('/admin/dashboard', [AdminController::class, 'dashboard'])->name('admin.dashboard');
     Route::patch('/admin/users/{user}/ban', [AdminController::class, 'ban'])->name('admin.user.ban');
     Route::patch('/admin/users/{user}/unban', [AdminController::class, 'unban'])->name('admin.user.unban');
+    Route::get('/invitations/{token}',[InvitationController::class, 'accept'])->name('invitations.accept');
+    Route::post('/colocations/{colocation}/invite',[InvitationController::class, 'sendInvitation'])->name('colocations.invite');
 });
 
 Route::middleware('auth')->group(function () {

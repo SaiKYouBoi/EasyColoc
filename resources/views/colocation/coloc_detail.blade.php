@@ -460,7 +460,7 @@
                             </div> --}}
                             <div
                                 class="flex items-center justify-between p-3 rounded-xl border border-dashed border-white/10 hover:bg-white/5 transition-colors cursor-pointer opacity-70 hover:opacity-100">
-
+                                @if($role === 'owner')
                                 <button type="button" id="createInvite">
                                     <div class="flex items-center gap-3">
                                         <div
@@ -474,6 +474,7 @@
                                         </div>
                                     </div>
                                 </button>
+                                @endif
                             </div>
                         </div>
                     </div>
@@ -592,7 +593,7 @@
                         Enter the email for the new member.
                     </p>
                 </div>
-                <form action="" id="inviteForm" method="POST">
+                <form action="{{ route('colocations.invite', $colocation) }}" id="inviteForm" method="POST">
                     @csrf
                     <!-- Form Section -->
                     <div class="flex flex-col gap-6">
@@ -601,7 +602,7 @@
                                 Email
                             </label>
                             <div class="relative">
-                                <input name="memberEmail"
+                                <input name="email"
                                     class="w-full h-12 px-4 rounded-xl border border-slate-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-zinc-500 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all outline-none"
                                     placeholder="member@easycoloc.ma" type="email" required />
                             </div>
