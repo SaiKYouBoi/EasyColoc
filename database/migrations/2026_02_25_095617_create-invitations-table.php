@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('invitaions',function(Blueprint $table){
+        Schema::create('invitations',function(Blueprint $table){
             $table->id();
             $table->foreignId('colocation_id')->constrained()->cascadeOnDelete();
             $table->string('email');
